@@ -56,25 +56,23 @@ public class File : Entry
 // Directory 類別
 public class Directory : Entry
 {
-    private List<Entry> _directory = new List<Entry>();
-
-    public List<Entry> Entries { get { return _directory; } }
-
+    private List<Entry> _directoriesAndFiles = new List<Entry>();
+    public List<Entry> Entries { get { return _directoriesAndFiles; } }
     public Directory(string name) : base(name)
     {
         foreach (var n in System.IO.Directory.GetFileSystemEntries(name))
         {
             if (System.IO.Directory.Exists(n))
-                _directory.Add(new Directory(n + "\\"));
+                _directoriesAndFiles.Add(new Directory(n + "\\"));
             else
-                _directory.Add(new File(n));
+                _directoriesAndFiles.Add(new File(n));
         }
     }
 
     public override int GetSize()
     {
         int size = 0;
-        foreach (var entry in _directory)
+        foreach (var entry in _directoriesAndFiles)
         {
             size += entry.GetSize();
         }
@@ -88,10 +86,9 @@ public class Directory : Entry
 
     public override void Add(Entry entry)
     {
-        _directory.Add(entry);
+        _directoriesAndFiles.Add(entry);
     }
 }
-
 // Visitor 類別
 
 public interface IVisitor
@@ -99,8 +96,6 @@ public interface IVisitor
     void Visit(Directory directory);
     void Visit(File directory);
 }
-
-
 
 public class ListVisitor: IVisitor
 {
@@ -149,7 +144,6 @@ public class RegexVisitor : IVisitor
     }
 }
 
-
 public class ConditionVisitor : IVisitor
 {
     Func<Entry, bool> _condition;
@@ -180,11 +174,6 @@ public class ConditionVisitor : IVisitor
     }
 }
 
-
-
-
-
-
 class Program
 {
     static void Main(string[] args)
@@ -204,12 +193,13 @@ class Program
 
         IVisitor conditionSizeVisitor = new ConditionVisitor(e =>
         {
-            if (e.GetSize() > 10000)
+            if (e.GetSize() > 100 && e.GetSize() < 1000 && e is File)
             {
                 return true;
             }
             return false;
         });
+
         root.Accept(conditionSizeVisitor);
     }
 }
