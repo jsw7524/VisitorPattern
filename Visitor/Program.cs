@@ -97,7 +97,7 @@ public interface IVisitor
     void Visit(File directory);
 }
 
-public class ListVisitor: IVisitor
+public class ListVisitor : IVisitor
 {
     public void Visit(Directory dir)
     {
@@ -174,32 +174,126 @@ public class ConditionVisitor : IVisitor
     }
 }
 
+public class Block
+{
+    public string Name { get; set; }
+    public int Size { get; set; }
+    public int x1;
+    public int y1;
+    public int x2;
+    public int y2;
+}
+
+public class Spliter
+{
+    public enum Direction
+    {
+        VERTICAL,
+        HORIZONTAL
+    }
+
+    public List<Block> blocks = new List<Block>();
+
+    public void Split(IEnumerable<Entry> entries, Direction direction, int x1, int y1, int x2, int y2)
+    {
+        var data = entries.OrderByDescending(e => e.GetSize()).ToList();
+        if (data.Count() == 1)
+        {
+            var bigest = data.FirstOrDefault();
+
+
+            if (bigest is Directory)
+            {
+                var b = bigest as Directory;
+                Split(b.Entries, direction == Direction.VERTICAL ? Direction.HORIZONTAL : Direction.VERTICAL, x1, y1, x2, y2);
+            }
+
+            if (bigest is File)
+            {
+                blocks.Add(new Block() { Name = bigest.GetName(), Size = bigest.GetSize(), x1 = x1, y1 = y1, x2 = x2, y2 = y2 });
+            }
+        }
+        else if (data.Count() > 1)
+        {
+            var bigest = data.FirstOrDefault();
+            double ratio = (bigest.GetSize() / (double) entries.Sum(e => e.GetSize()));
+
+
+            if (direction == Direction.HORIZONTAL)
+            {
+
+                //blocks.Add(new Block() { Name= bigest.GetName(), Size=bigest.GetSize(), x1 = x1, y1 = y1, x2 = x1 + (int)(ratio * (x2 - x1)), y2 = y2 });
+
+                if (bigest is Directory)
+                {
+                    var b = bigest as Directory;
+                    Split(b.Entries, Direction.VERTICAL, x1, y1, x1+(int)(ratio*(x2-x1)), y2);
+                }
+
+                if (bigest is File)
+                {
+                    var b = bigest as File;
+                    Split(new List<Entry>() {b}, Direction.VERTICAL, x1, y1, x1 + (int)(ratio * (x2 - x1)), y2);
+                }
+
+                Split(data.Skip(1), Direction.VERTICAL, x1 + (int)(ratio * (x2 - x1)), y1, x2, y2);
+
+            }
+            else if (direction == Direction.VERTICAL)
+            {
+
+                //blocks.Add(new Block() { Name = bigest.GetName(), Size = bigest.GetSize(), x1 = x1, y1 = y1 + (int)(ratio * (y2 - y1)), x2 = x2, y2 = y2 });
+
+                if (bigest is Directory)
+                {
+                    var b = bigest as Directory;
+                    Split(b.Entries, Direction.HORIZONTAL, x1, y1, x2 , y1 + (int)(ratio * (y2 - y1)));
+                }
+
+                if (bigest is File)
+                {
+                    var b = bigest as File;
+                    Split(new List<Entry>() { b }, Direction.HORIZONTAL, x1, y1 , x2, y1 + (int)(ratio * (y2 - y1)));
+                }
+                Split(data.Skip(1), Direction.HORIZONTAL, x1, y1 + (int)(ratio * (y2 - y1)), x2, y2);
+            }
+        }
+    }
+
+}
+
+
 class Program
 {
     static void Main(string[] args)
     {
-        Directory root = new Directory("D:\\jsw7524\\Leetcode\\");
-        IVisitor visitor = new ListVisitor();
-        IVisitor visitorRegex = new RegexVisitor(new Regex(@"100"));
+        Directory root = new Directory("D:\\jsw7524\\test\\");
+        //IVisitor visitor = new ListVisitor();
+        //IVisitor visitorRegex = new RegexVisitor(new Regex(@"100"));
 
-        IVisitor conditionNameVisitor = new ConditionVisitor(e => 
-        {
-            if (e.GetName().Contains("123"))
-            { 
-                return true; 
-            }
-            return false; 
-        });
+        //IVisitor conditionNameVisitor = new ConditionVisitor(e =>
+        //{
+        //    if (e.GetName().Contains("123"))
+        //    {
+        //        return true;
+        //    }
+        //    return false;
+        //});
 
-        IVisitor conditionSizeVisitor = new ConditionVisitor(e =>
-        {
-            if (e.GetSize() > 100 && e.GetSize() < 1000 && e is File)
-            {
-                return true;
-            }
-            return false;
-        });
+        //IVisitor conditionSizeVisitor = new ConditionVisitor(e =>
+        //{
+        //    if (e.GetSize() > 100 && e.GetSize() < 1000 && e is File)
+        //    {
+        //        return true;
+        //    }
+        //    return false;
+        //});
 
-        root.Accept(conditionSizeVisitor);
+        //root.Accept(conditionSizeVisitor);
+
+        Spliter spliter = new Spliter();
+
+        spliter.Split(root.Entries, Spliter.Direction.HORIZONTAL, 0, 0, 1000, 1000);
+
     }
 }
