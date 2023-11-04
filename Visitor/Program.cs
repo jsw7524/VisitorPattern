@@ -55,20 +55,50 @@ public class File : Entry
     }
 }
 
+
+
 // Directory 類別
 public class Directory : Entry
 {
+    //static List<string> forbidenDirectory = new List<string>() { "\\windows\\" };
+
     private List<Entry> _directoriesAndFiles = new List<Entry>();
     public List<Entry> Entries { get { return _directoriesAndFiles; } }
-    public Directory(string name) : base(name)
+    private int _depth;
+    public Directory(string name, int depth) : base(name)
     {
-        foreach (var n in System.IO.Directory.GetFileSystemEntries(name))
+        _depth = depth;
+        if (depth < 10)
         {
-            if (System.IO.Directory.Exists(n))
-                _directoriesAndFiles.Add(new Directory(n + "\\"));
-            else
-                _directoriesAndFiles.Add(new File(n));
+            try
+            {
+                var fs = System.IO.Directory.GetFileSystemEntries(name);
+
+                foreach (var n in fs)
+                {
+                    if (n.ToLower().Contains("\\windows\\"))
+                    {
+                        continue;
+                    }
+
+                    if (System.IO.Directory.Exists(n))
+                    {
+                        _directoriesAndFiles.Add(new Directory(n + "\\", depth + 1));
+                    }
+
+                    else
+                    {
+                        _directoriesAndFiles.Add(new File(n));
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Access denied: {ex.Message}");
+            }
         }
+
     }
 
     public override long GetSize()
@@ -290,7 +320,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Directory root = new Directory("D:\\Books");
+        Directory root = new Directory("D:\\", 0);
         //IVisitor visitor = new ListVisitor();
         //IVisitor visitorRegex = new RegexVisitor(new Regex(@"100"));
 
@@ -314,9 +344,9 @@ class Program
 
         //root.Accept(conditionSizeVisitor);
 
-        Spliter spliter = new Spliter();
+        //Spliter spliter = new Spliter();
 
-        spliter.Split(root.Entries, Spliter.Direction.HORIZONTAL, 0, 0, 1000, 1000);
+        //spliter.Split(root.Entries, Spliter.Direction.HORIZONTAL, 0, 0, 1000, 1000);
 
     }
 }

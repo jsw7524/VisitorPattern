@@ -32,7 +32,7 @@ namespace WinFormsApp1
         }
 
 
-        public void MakeFileMap()
+        public void MakeFileMap2()
         {
 
             spliter.Split(root.Entries, Spliter.Direction.HORIZONTAL, 0, 0, 1800, 900);
@@ -40,22 +40,30 @@ namespace WinFormsApp1
             blocks = spliter.blocks;
 
         }
+        public void MakeFileMap1()
+        {
+
+            Thread myThread = new Thread(new ThreadStart(MakeFileMap2), 1024 * 1024 * 15); // 105MB的堆疊
+            myThread.Start();
+            myThread.Join();
+             Invalidate();
+        }
         Directory root;
         private void button1_Click(object sender, EventArgs e)
         {
 
             folderBrowserDialog1.ShowDialog(this);
-            root = new Directory(folderBrowserDialog1.SelectedPath);
+            root = new Directory(folderBrowserDialog1.SelectedPath, 0);
 
 
             spliter = new Spliter();
-            Thread myThread = new Thread(new ThreadStart(MakeFileMap), 1024 * 1024 * 5); // 5MB的堆疊
+            Thread myThread = new Thread(new ThreadStart(MakeFileMap1)); 
             myThread.Start();
-            myThread.Join();
 
 
 
-            Invalidate();
+
+
 
         }
 
