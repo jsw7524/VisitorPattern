@@ -28,34 +28,37 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.button1 = new System.Windows.Forms.Button();
-            this.SuspendLayout();
+            button1 = new Button();
+            folderBrowserDialog1 = new FolderBrowserDialog();
+            SuspendLayout();
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(1051, 49);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(194, 67);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "button1";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            button1.Location = new Point(2593, 51);
+            button1.Margin = new Padding(4);
+            button1.Name = "button1";
+            button1.Size = new Size(247, 87);
+            button1.TabIndex = 0;
+            button1.Text = "button1";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
             // 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 23F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1379, 679);
-            this.Controls.Add(this.button1);
-            this.Name = "Form1";
-            this.Text = "Form1";
-            this.Load += new System.EventHandler(this.Form1_Load);
-            this.ResumeLayout(false);
-
+            AutoScaleDimensions = new SizeF(14F, 30F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(2874, 1399);
+            Controls.Add(button1);
+            Margin = new Padding(4);
+            Name = "Form1";
+            Text = "Form1";
+            Load += Form1_Load;
+            ResumeLayout(false);
         }
 
         #endregion
 
         private Button button1;
+        private FolderBrowserDialog folderBrowserDialog1;
     }
 }

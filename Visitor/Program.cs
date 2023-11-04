@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-
+using System.Collections.Generic;
 // Visitable 接口
 public interface IVisitable
 {
@@ -24,7 +24,7 @@ public abstract class Entry : IVisitable
         return this._name;
     }
 
-    public abstract int GetSize();
+    public abstract long GetSize();
     public abstract void Accept(IVisitor visitor);
     public virtual void Add(Entry entry)
     {
@@ -35,14 +35,16 @@ public abstract class Entry : IVisitable
 // File 類別
 public class File : Entry
 {
-    private int _size;
+    long _size;
 
     public File(string name) : base(name)
     {
-        this._size = (int)new FileInfo(name).Length;
+
+        var fi = new FileInfo(name);
+        this._size = (long)fi.Length;
     }
 
-    public override int GetSize()
+    public override long GetSize()
     {
         return this._size;
     }
@@ -69,9 +71,9 @@ public class Directory : Entry
         }
     }
 
-    public override int GetSize()
+    public override long GetSize()
     {
-        int size = 0;
+        long size = 0;
         foreach (var entry in _directoriesAndFiles)
         {
             size += entry.GetSize();
@@ -177,11 +179,29 @@ public class ConditionVisitor : IVisitor
 public class Block
 {
     public string Name { get; set; }
-    public int Size { get; set; }
+    public long Size { get; set; }
     public int x1;
     public int y1;
     public int x2;
     public int y2;
+}
+
+
+class SizeIComparer : IComparer<Entry>
+{
+    public int Compare(Entry? x, Entry? y)
+    {
+        if (x.GetSize() - y.GetSize() > 0)
+        {
+            return 1;
+        }
+        else if (x.GetSize() - y.GetSize() < 0)
+        {
+            return -1;
+        }
+        return 0;
+
+    }
 }
 
 public class Spliter
@@ -196,7 +216,10 @@ public class Spliter
 
     public void Split(IEnumerable<Entry> entries, Direction direction, int x1, int y1, int x2, int y2)
     {
-        var data = entries.OrderByDescending(e => e.GetSize()).ToList();
+        var data = entries.OrderByDescending(e => (long)e.GetSize()).ToList();
+
+        //entries.ToList().Sort(new SizeIComparer());
+        //var data = entries.Reverse();
         if (data.Count() == 1)
         {
             var bigest = data.FirstOrDefault();
@@ -216,7 +239,7 @@ public class Spliter
         else if (data.Count() > 1)
         {
             var bigest = data.FirstOrDefault();
-            double ratio = (bigest.GetSize() / (double) entries.Sum(e => e.GetSize()));
+            double ratio = (bigest.GetSize() / (double)entries.Sum(e => (long)e.GetSize()));
 
 
             if (direction == Direction.HORIZONTAL)
@@ -227,13 +250,13 @@ public class Spliter
                 if (bigest is Directory)
                 {
                     var b = bigest as Directory;
-                    Split(b.Entries, Direction.VERTICAL, x1, y1, x1+(int)(ratio*(x2-x1)), y2);
+                    Split(b.Entries, Direction.VERTICAL, x1, y1, x1 + (int)(ratio * (x2 - x1)), y2);
                 }
 
                 if (bigest is File)
                 {
                     var b = bigest as File;
-                    Split(new List<Entry>() {b}, Direction.VERTICAL, x1, y1, x1 + (int)(ratio * (x2 - x1)), y2);
+                    Split(new List<Entry>() { b }, Direction.VERTICAL, x1, y1, x1 + (int)(ratio * (x2 - x1)), y2);
                 }
 
                 Split(data.Skip(1), Direction.VERTICAL, x1 + (int)(ratio * (x2 - x1)), y1, x2, y2);
@@ -247,13 +270,13 @@ public class Spliter
                 if (bigest is Directory)
                 {
                     var b = bigest as Directory;
-                    Split(b.Entries, Direction.HORIZONTAL, x1, y1, x2 , y1 + (int)(ratio * (y2 - y1)));
+                    Split(b.Entries, Direction.HORIZONTAL, x1, y1, x2, y1 + (int)(ratio * (y2 - y1)));
                 }
 
                 if (bigest is File)
                 {
                     var b = bigest as File;
-                    Split(new List<Entry>() { b }, Direction.HORIZONTAL, x1, y1 , x2, y1 + (int)(ratio * (y2 - y1)));
+                    Split(new List<Entry>() { b }, Direction.HORIZONTAL, x1, y1, x2, y1 + (int)(ratio * (y2 - y1)));
                 }
                 Split(data.Skip(1), Direction.HORIZONTAL, x1, y1 + (int)(ratio * (y2 - y1)), x2, y2);
             }
@@ -267,7 +290,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Directory root = new Directory("D:\\jsw7524\\test\\");
+        Directory root = new Directory("D:\\Books");
         //IVisitor visitor = new ListVisitor();
         //IVisitor visitorRegex = new RegexVisitor(new Regex(@"100"));
 

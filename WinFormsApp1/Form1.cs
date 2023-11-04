@@ -1,3 +1,5 @@
+ï»¿using System.Windows.Forms;
+
 namespace WinFormsApp1
 {
     public partial class Form1 : Form
@@ -10,27 +12,48 @@ namespace WinFormsApp1
         }
 
         Spliter spliter;
-
+        List<Block> blocks;
         public void DrawString(int x, int y, int width, int height, string text)
         {
+            if (width * height < 100)
+            {
+                return;
+            }
+
             System.Drawing.Graphics formGraphics = this.CreateGraphics();
             string drawString = text;
             System.Drawing.Font drawFont = new System.Drawing.Font("Arial", 8);
             System.Drawing.SolidBrush drawBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Black);
             System.Drawing.StringFormat drawFormat = new System.Drawing.StringFormat();
-            formGraphics.DrawString(drawString, drawFont, drawBrush, new RectangleF(x,y, width, height));
+            formGraphics.DrawString(drawString, drawFont, drawBrush, new RectangleF(x, y, width, height));
             drawFont.Dispose();
             drawBrush.Dispose();
             formGraphics.Dispose();
         }
 
 
+        public void MakeFileMap()
+        {
+
+            spliter.Split(root.Entries, Spliter.Direction.HORIZONTAL, 0, 0, 1800, 900);
+
+            blocks = spliter.blocks;
+
+        }
+        Directory root;
         private void button1_Click(object sender, EventArgs e)
         {
-            Directory root = new Directory(@"D:\°ê®w§½¾÷¾¹¾Ç²ß¬ã¨s®×\Predict\");
+
+            folderBrowserDialog1.ShowDialog(this);
+            root = new Directory(folderBrowserDialog1.SelectedPath);
+
 
             spliter = new Spliter();
-            spliter.Split(root.Entries, Spliter.Direction.HORIZONTAL, 0, 0, 1800, 900);
+            Thread myThread = new Thread(new ThreadStart(MakeFileMap), 1024 * 1024 * 5); // 5MBçš„å †ç–Š
+            myThread.Start();
+            myThread.Join();
+
+
 
             Invalidate();
 
@@ -40,26 +63,18 @@ namespace WinFormsApp1
         {
             this.Paint += (o, e) =>
             {
+
                 Graphics g = e.Graphics;
                 using (Pen selPen = new Pen(Color.Blue))
                 {
-                    if (spliter?.blocks != null)
+                    if (blocks != null)
                     {
-                        foreach (Block blk in spliter.blocks)
+                        foreach (Block blk in blocks)
                         {
-                            //////////////////
-                            //var label = new Label();
-                            //label.Location = new Point(blk.x1+30, blk.y1+30);
-                            //label.Visible = true;
-                            //label.Size =new Size(blk.x2 - blk.x1 -30, blk.y2 - blk.y1-30);
-                            //label.Text = blk.Name;
-                            //Controls.Add(label);
                             g.DrawRectangle(selPen, blk.x1, blk.y1, blk.x2 - blk.x1, blk.y2 - blk.y1);
-                            DrawString(blk.x1, blk.y1, blk.x2 - blk.x1, blk.y2 - blk.y1, blk.Name + " " + Math.Round(blk.Size/1023.0)+"KB");
-                            //////////////////
+                            DrawString(blk.x1, blk.y1, blk.x2 - blk.x1, blk.y2 - blk.y1, blk.Name + " " + blk.Size + "KB");
                         }
                     }
-
                 }
             };
         }
