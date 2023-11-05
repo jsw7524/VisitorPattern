@@ -27,7 +27,7 @@ namespace WinFormsApp1
             listVisitor.Flush();
             richTextBox1.LoadFile(listVisitor.streamToReturn, RichTextBoxStreamType.PlainText);
 
-
+            button2.Enabled = true;
 
         }
 

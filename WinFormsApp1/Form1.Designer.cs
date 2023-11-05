@@ -47,6 +47,7 @@
             // 
             // button2
             // 
+            button2.Enabled = false;
             button2.Location = new Point(402, 27);
             button2.Name = "button2";
             button2.Size = new Size(332, 131);
