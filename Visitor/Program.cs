@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using System.Text;
 // Visitable 接口
 public interface IVisitable
 {
@@ -131,6 +132,15 @@ public interface IVisitor
 
 public class ListVisitor : IVisitor
 {
+    public MemoryStream streamToReturn;
+    public StreamWriter writer ;
+
+    public ListVisitor()
+    {
+         streamToReturn = new MemoryStream();
+         writer = new StreamWriter(streamToReturn, Encoding.UTF8);
+    }
+
     public void Visit(Directory dir)
     {
         Console.WriteLine($"{dir.GetName()} ({dir.GetSize()} bytes)");
@@ -142,8 +152,15 @@ public class ListVisitor : IVisitor
 
     public void Visit(File file)
     {
-        Console.WriteLine($"{file.GetName()} {file.GetSize()} bytes");
+        writer.WriteLine($"{file.GetName()} {file.GetSize()} bytes");
     }
+
+    public void Flush()
+    {
+        writer.Flush();
+        streamToReturn.Position = 0;
+    }
+
 }
 
 public class RegexVisitor : IVisitor
