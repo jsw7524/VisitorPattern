@@ -15,20 +15,26 @@ namespace WinFormsApp1
         }
 
         public Directory root;
-        private void button1_Click(object sender, EventArgs e)
-        {
 
+
+        public async Task Run1()
+        {
             folderBrowserDialog1.ShowDialog(this);
             root = new Directory(folderBrowserDialog1.SelectedPath, 0);
-
             ListVisitor listVisitor = new ListVisitor();
-
-            listVisitor.Visit(root);
-            listVisitor.Flush();
+            await Task.Run(() =>
+            {
+                listVisitor.Visit(root);
+                listVisitor.Flush();
+            });
             richTextBox1.LoadFile(listVisitor.streamToReturn, RichTextBoxStreamType.PlainText);
-
             button2.Enabled = true;
+        }
 
+
+        private async void button1_Click(object sender, EventArgs e)
+        {
+            await Run1();
         }
 
         private void Form1_Load(object sender, EventArgs e)
